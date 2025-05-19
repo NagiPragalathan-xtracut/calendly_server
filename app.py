@@ -7,7 +7,11 @@ app = Flask(__name__)
 CORS(app)
 
 def process_meeting_string(string_parse):
+    print("string_parse :", string_parse)
+    
     correct_string = [i.strip() for i in string_parse.split("\n\n")]
+
+    print("[correct_string] : ", correct_string)
 
     # Process title
     title = correct_string[0]
