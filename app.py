@@ -121,5 +121,66 @@ def process_meeting():
         }), 500
 
 
+@app.route('/process-qa', methods=['GET', 'POST'])
+def process_qa():
+    """
+    Endpoint expects 'qa_list' either in JSON body or as a query parameter (stringified JSON).
+    Example input:
+    [{"answer":"sample response","question":"Please share anything that will help prepare for our meeting.","position":0}]
+    """
+    try:
+        if request.method == 'POST':
+            if request.is_json:
+                data = request.get_json()
+            else:
+                data = request.form.to_dict()
+        else:  # GET
+            data = request.args.to_dict()
+
+        if not data or 'qa_list' not in data:
+            return jsonify({
+                'success': False,
+                'error': 'No QA list provided',
+                'timestamp': datetime.now().isoformat(),
+                'status': 'error'
+            }), 400
+
+        # qa_list might be a JSON string, so parse it
+        qa_list_str = data['qa_list']
+
+        # If the data is already a list (POST JSON), handle that too
+        if isinstance(qa_list_str, list):
+            qa_list = qa_list_str
+        else:
+            qa_list = json.loads(qa_list_str)
+
+        formatted_result = process_qa_list(qa_list)
+
+        return jsonify({
+            'success': True,
+            'timestamp': datetime.now().isoformat(),
+            'status': 'success',
+            'data': {
+                'formatted_qa': formatted_result
+            },
+            'metadata': {
+                'processing_time': datetime.now().isoformat(),
+                'version': '1.0',
+                'format': 'plain-text'
+            }
+        })
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e),
+            'timestamp': datetime.now().isoformat(),
+            'status': 'error',
+            'metadata': {
+                'error_type': type(e).__name__,
+                'version': '1.0'
+            }
+        }), 500
+
+
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
