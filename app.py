@@ -11,6 +11,9 @@ def process_meeting_string(string_parse):
     
     correct_string = [i.strip() for i in string_parse.split("\n\n")]
 
+    if(len(correct_string) == 1):
+        correct_string = [i.strip() for i in string_parse.split("\\n\\n")]
+
     print("[correct_string] : ", correct_string)
 
     # Process title
