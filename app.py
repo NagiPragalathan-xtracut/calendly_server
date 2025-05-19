@@ -1,63 +1,69 @@
 from flask import Flask, request, jsonify
+from flask_cors import CORS
 import json
 from datetime import datetime
 
 app = Flask(__name__)
+CORS(app)
 
 def process_meeting_string(string_parse):
     correct_string = [i.strip() for i in string_parse.split("\n\n")]
-    
+
     # Process title
     title = correct_string[0]
-    
-    # Process name
+
+    # Process name (organizer)
     name_line = correct_string[1]
-    name = name_line.split(":")[1].strip() if ":" in name_line else name_line
-    
-    # Process members
+    organizer = name_line.split(":")[1].strip() if ":" in name_line else name_line
+
+    # Process members (host)
     members = correct_string[2]
     get_json_open = members.index("{")
     get_json_close = members.index("}")
-    members_json = members[get_json_open:get_json_close+1]
+    members_json = members[get_json_open:get_json_close + 1]
     members_data = json.loads(members_json)
-    
+
     # Process guests
     try:
         guests = correct_string[3]
         get_json_open_guests = guests.index("{")
-        guests_json = "["+guests[get_json_open_guests:]+"]"
+        guests_json = "[" + guests[get_json_open_guests:] + "]"
         guests_data = json.loads(guests_json)
         guests_list = [i['email'] for i in guests_data]
     except:
         guests_list = []
 
-    # Create formatted docstring message
+    total_guests = len(guests_list)
+    total_participants = total_guests + 1  # host + guests
+    created_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+
+    # Create a formatted docstring message with richer info and better structure
     message = f"""
-{'='*60}
-{title.center(60)}
-{'='*60}
+╔{"="*66}╗
+║{title.center(66)}║
+╚{"="*66}╝
 
-📋 Meeting Details:
-------------------
-• Organizer: {name}
+📋  Meeting Overview
+─────────────────────
+• Organizer    : {organizer}
+• Host Name    : {members_data.get('user_name', 'Unknown')}
+• Host Email   : {members_data.get('user_email', 'Unknown')}
+• Host User ID : {members_data.get('user', 'Unknown')}
 
-👤 Host Information:
--------------------
-• Name: {members_data.get('user_name', 'Unknown')}
-• Email: {members_data.get('user_email', 'Unknown')}
-• User ID: {members_data.get('user', 'Unknown')}
+👥  Guests Attending
+─────────────────────
+{chr(10).join([f"• Guest {i+1}: {email}" for i, email in enumerate(guests_list)]) if guests_list else "• No guests attending"}
 
-👥 Guest Information:
---------------------
-{chr(10).join([f'• Guest {i+1}: {email}' for i, email in enumerate(guests_list)]) if guests_list else '• No guests in this meeting'}
+📊  Summary
+─────────────
+• Total Guests       : {total_guests}
+• Total Participants : {total_participants}
+• Guests Present     : {"Yes" if guests_list else "No"}
+• Created Time       : {created_time}
 
-📊 Meeting Summary:
-------------------
-• Total Participants: {len(guests_list) + 1}
-• Has Guests: {'Yes' if guests_list else 'No'}
-
-{'='*60}
+{'='*70}
 """
+
     return message.strip()
 
 @app.route('/process-meeting', methods=['POST'])
