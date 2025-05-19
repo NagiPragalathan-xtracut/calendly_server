@@ -47,21 +47,21 @@ def process_meeting_string(string_parse):
     # Create a formatted docstring message with richer info and better structure
     message = f"""
 ╔{"="*66}╗
-║{title.center(66)}║
+{title.center(66)}
 ╚{"="*66}╝
 
-📋  Meeting Overview
+⨳  Meeting Overview
 ─────────────────────
 • Organizer    : {organizer}
 • Host Name    : {members_data.get('user_name', 'Unknown')}
 • Host Email   : {members_data.get('user_email', 'Unknown')}
 • Host User ID : {members_data.get('user', 'Unknown')}
 
-👥  Guests Attending
+♧  Guests Attending
 ─────────────────────
 {chr(10).join([f"• Guest {i+1}: {email}" for i, email in enumerate(guests_list)]) if guests_list else "• No guests attending"}
 
-📊  Summary
+♕  Summary
 ─────────────
 • Total Guests       : {total_guests}
 • Total Participants : {total_participants}
