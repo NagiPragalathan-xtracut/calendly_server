@@ -121,6 +121,21 @@ def process_meeting():
         }), 500
 
 
+def process_qa_list(qa_list):
+    """
+    qa_list: a list of dicts with 'question' and 'answer' keys
+    Returns a formatted string of all questions and answers.
+    """
+    lines = []
+    for i, qa in enumerate(qa_list, start=1):
+        question = qa.get('question', 'No question provided')
+        answer = qa.get('answer', 'No answer provided')
+        lines.append(f"Q{i}: {question}\nA{i}: {answer}\n")
+
+    result = "\n".join(lines).strip()
+    return result
+
+
 @app.route('/process-qa', methods=['GET', 'POST'])
 def process_qa():
     """
