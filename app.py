@@ -66,10 +66,17 @@ def process_meeting_string(string_parse):
 
     return message.strip()
 
-@app.route('/process-meeting', methods=['POST'])
+@app.route('/process-meeting', methods=['GET', 'POST'])
 def process_meeting():
     try:
-        data = request.get_json()
+        if request.method == 'POST':
+            if request.is_json:
+                data = request.get_json()
+            else:
+                data = request.form.to_dict()
+        else:  # GET
+            data = request.args.to_dict()
+
         if not data or 'meeting_string' not in data:
             return jsonify({
                 'success': False,
@@ -77,10 +84,10 @@ def process_meeting():
                 'timestamp': datetime.now().isoformat(),
                 'status': 'error'
             }), 400
-        
+
         meeting_string = data['meeting_string']
         result = process_meeting_string(meeting_string)
-        
+
         return jsonify({
             'success': True,
             'timestamp': datetime.now().isoformat(),
@@ -105,6 +112,7 @@ def process_meeting():
                 'version': '1.0'
             }
         }), 500
+
 
 if __name__ == '__main__':
     app.run(debug=True, port=5000)
